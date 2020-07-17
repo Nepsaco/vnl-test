@@ -1,23 +1,31 @@
 const elephantInfo = document.querySelector('.elephant-info')
 const elephantList = document.querySelector('.elephant-list')
+const elephantHero = document.querySelector('.elephant-hero')
 let stateElephants = {}
 
 fetchElephants()
-  .then(setElephants)
-  .then(addHowManyElephants)
-  .then(() => getMaleElephants(stateElephants.elephants))
-  .then(addMaleElephants)
-  .then(() => getFemaleElephants(stateElephants.elephants))
-  .then(addFemaleElephants)
+  .then(results => updateState('elephants', results))
+  .then(filterAllElephants)
+  .then(addElephantInfo)
   .then(sortElephantsByDOB)
   .then(displayAllElephants)
-  .then(() => elephantList.addEventListener('click', showElephantImage))
+  .then(addOnClickHandler)
+
+function addOnClickHandler(event) {
+  elephantList.addEventListener('click', showElephantImage)
+}
 
 function showElephantImage(event) {
+  elephantHero.innerHTML = ''
   const currentElephant = stateElephants.elephants.find(elephant => elephant.name === event.target.innerText)
+  const h2 = document.createElement('h2')
   const img = document.createElement('img')
+  const a = document.createElement('a')
+  h2.innerText = currentElephant.name
   img.src = currentElephant.image
-  event.target.appendChild(img)
+  a.innerText = `Click here to learn more`
+  a.href = currentElephant.wikilink
+  elephantHero.append(h2, img, a)
 }
 
 function sortElephantsByDOB() {
@@ -38,8 +46,24 @@ async function fetchElephants() {
   return response.json()
 }
 
-function setElephants(elephants) {
-  return stateElephants = {elephants}
+function addElephantInfo() {
+  addHowManyElephants()
+  addElephantsByGender('male')
+  addElephantsByGender('female')
+}
+function filterAllElephants() {
+  filterByGender(stateElephants.elephants, 'male')
+  filterByGender(stateElephants.elephants, 'female')
+}
+
+function filterByGender(elephants, sex) {
+  if(sex === 'male') {
+    const maleElephants = elephants.filter(elephant => elephant.sex === 'Male')
+    updateState('male', maleElephants)
+  } else if ( sex === 'female' ) {
+    const femaleElephants = elephants.filter(elephant => elephant.sex === 'Female')
+    updateState('female', femaleElephants)
+  }
 }
 
 function addHowManyElephants() {
@@ -48,35 +72,13 @@ function addHowManyElephants() {
   elephantInfo.appendChild(h2)
 }
 
-function getMaleElephants(elephants) {
-  const maleElephants = elephants.filter(elephant => {
-    return elephant.sex === 'Male'
-  })
-  updateState(maleElephants)
-}
 
-function getFemaleElephants(elephants) {
-  const femaleElephants = elephants.filter(elephant => {
-    return elephant.sex === 'Female'
-  })
-  updateState(femaleElephants)
-}
-
-function addMaleElephants() {
+function addElephantsByGender(gender) {
   const h2 = document.createElement('h2')
-  h2.innerText = `There are ${stateElephants.elephantArray.length} Male Elephants`
+  h2.innerText = `There are ${stateElephants[gender].length} ${gender} elephants`
   elephantInfo.appendChild(h2)
 }
 
-function addFemaleElephants(elephants) {
-  const h2 = document.createElement('h2')
-  h2.innerText = `There are ${stateElephants.elephantArray.length} female Elephants`
-  elephantInfo.appendChild(h2)
-}
-
-function updateState(keyValue) {
-  return stateElephants = {
-    ...stateElephants,
-    elephantArray: keyValue 
-  }
+function updateState(key, value) {
+  return stateElephants[key] = value
 }
